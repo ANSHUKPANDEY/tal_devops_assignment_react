@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-js-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: react-js
+  template:
+    metadata:
+      labels:
+        app: react-js
+    spec:
+      containers:
+      - name: react-js
+        image: 166895578441.dkr.ecr.ap-south-1.amazonaws.com/frontend-react-app:latest 
+        resources:
+          limits:
+            memory: "356Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3001
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/nginx
+      volumes:
+      - name: logs
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-js-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: react-js
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
